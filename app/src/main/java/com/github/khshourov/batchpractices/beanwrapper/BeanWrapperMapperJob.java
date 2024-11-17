@@ -1,0 +1,124 @@
+package com.github.khshourov.batchpractices.beanwrapper;
+
+import com.github.khshourov.batchpractices.common.DataSourceConfiguration;
+import com.github.khshourov.batchpractices.domain.trade.Trade;
+import com.github.khshourov.batchpractices.domain.trade.TradeDao;
+import com.github.khshourov.batchpractices.domain.trade.internal.JdbcTradeDao;
+import com.github.khshourov.batchpractices.domain.trade.internal.TradeWriter;
+import com.github.khshourov.batchpractices.domain.trade.internal.validator.TradeValidator;
+import javax.sql.DataSource;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.item.file.FlatFileItemReader;
+import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
+import org.springframework.batch.item.file.mapping.DefaultLineMapper;
+import org.springframework.batch.item.file.mapping.FieldSetMapper;
+import org.springframework.batch.item.file.transform.FixedLengthTokenizer;
+import org.springframework.batch.item.file.transform.Range;
+import org.springframework.batch.item.validator.SpringValidator;
+import org.springframework.batch.item.validator.ValidatingItemProcessor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.support.JdbcTransactionManager;
+import org.springframework.jdbc.support.incrementer.DataFieldMaxValueIncrementer;
+import org.springframework.jdbc.support.incrementer.PostgresSequenceMaxValueIncrementer;
+
+@Configuration
+@EnableBatchProcessing
+@Import(DataSourceConfiguration.class)
+public class BeanWrapperMapperJob {
+  @Bean
+  public Job job(JobRepository jobRepository, Step step1) {
+    return new JobBuilder("beanWrapperMapper", jobRepository).start(step1).build();
+  }
+
+  @Bean
+  public Step step1(
+      JobRepository jobRepository,
+      JdbcTransactionManager transactionManager,
+      FlatFileItemReader<Trade> tradeReader,
+      ValidatingItemProcessor<Trade> tradeProcessor,
+      TradeWriter tradeWriter) {
+    return new StepBuilder("step1", jobRepository)
+        .<Trade, Trade>chunk(1, transactionManager)
+        .reader(tradeReader)
+        .processor(tradeProcessor)
+        .writer(tradeWriter)
+        .build();
+  }
+
+  @Bean
+  public FlatFileItemReader<Trade> tradeReader(DefaultLineMapper<Trade> tradeLineMapper) {
+    FlatFileItemReader<Trade> reader = new FlatFileItemReader<>();
+    reader.setResource(
+        new ClassPathResource("com/github/khshourov/batchpractices/beanwrapper/data/trade.txt"));
+    reader.setLineMapper(tradeLineMapper);
+    return reader;
+  }
+
+  @Bean
+  public DefaultLineMapper<Trade> tradeLineMapper(
+      FixedLengthTokenizer tradeTokenizer, FieldSetMapper<Trade> tradeFieldSetMapper) {
+    DefaultLineMapper<Trade> mapper = new DefaultLineMapper<>();
+    mapper.setLineTokenizer(tradeTokenizer);
+    mapper.setFieldSetMapper(tradeFieldSetMapper);
+    return mapper;
+  }
+
+  @Bean
+  FixedLengthTokenizer tradeTokenizer() {
+    FixedLengthTokenizer tokenizer = new FixedLengthTokenizer();
+    tokenizer.setNames("ISIN", "Quantity", "price", "CUSTOMER");
+    tokenizer.setColumns(
+        new Range[] {new Range(1, 12), new Range(13, 15), new Range(16, 20), new Range(21, 29)});
+    return tokenizer;
+  }
+
+  @Bean
+  public FieldSetMapper<Trade> tradeFieldSetMapper() {
+    BeanWrapperFieldSetMapper<Trade> fieldSetMapper = new BeanWrapperFieldSetMapper<>();
+    fieldSetMapper.setTargetType(Trade.class);
+    return fieldSetMapper;
+  }
+
+  @Bean
+  public ValidatingItemProcessor<Trade> tradeProcessor(SpringValidator<Trade> tradeValidator) {
+    return new ValidatingItemProcessor<>(tradeValidator);
+  }
+
+  @Bean
+  public SpringValidator<Trade> tradeValidator() {
+    SpringValidator<Trade> validator = new SpringValidator<>();
+    validator.setValidator(new TradeValidator());
+    return validator;
+  }
+
+  @Bean
+  public TradeWriter tradeWriter(TradeDao tradeDao) {
+    TradeWriter tradeWriter = new TradeWriter();
+    tradeWriter.setTradeDao(tradeDao);
+    return tradeWriter;
+  }
+
+  @Bean
+  public TradeDao tradeDao(DataSource dataSource, DataFieldMaxValueIncrementer tradeIncrementer) {
+    JdbcTradeDao jdbcTradeDao = new JdbcTradeDao();
+    jdbcTradeDao.setDataSource(dataSource);
+    jdbcTradeDao.setIncrementer(tradeIncrementer);
+    return jdbcTradeDao;
+  }
+
+  @Bean
+  public PostgresSequenceMaxValueIncrementer tradeIncrementer(DataSource dataSource) {
+    PostgresSequenceMaxValueIncrementer incrementer = new PostgresSequenceMaxValueIncrementer();
+    incrementer.setDataSource(dataSource);
+    incrementer.setIncrementerName("TRADE_SEQ");
+    return incrementer;
+  }
+}
