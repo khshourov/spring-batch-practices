@@ -1,6 +1,8 @@
 package com.github.khshourov.batchpractices.beanwrapper;
 
 import com.github.khshourov.batchpractices.common.DataSourceConfiguration;
+import com.github.khshourov.batchpractices.domain.person.Person;
+import com.github.khshourov.batchpractices.domain.person.internal.PersonWriter;
 import com.github.khshourov.batchpractices.domain.trade.Trade;
 import com.github.khshourov.batchpractices.domain.trade.TradeDao;
 import com.github.khshourov.batchpractices.domain.trade.internal.JdbcTradeDao;
@@ -34,8 +36,8 @@ import org.springframework.jdbc.support.incrementer.PostgresSequenceMaxValueIncr
 @Import(DataSourceConfiguration.class)
 public class BeanWrapperMapperJob {
   @Bean
-  public Job job(JobRepository jobRepository, Step step1) {
-    return new JobBuilder("beanWrapperMapper", jobRepository).start(step1).build();
+  public Job job(JobRepository jobRepository, Step step1, Step step2) {
+    return new JobBuilder("beanWrapperMapper", jobRepository).start(step1).next(step2).build();
   }
 
   @Bean
@@ -54,11 +56,33 @@ public class BeanWrapperMapperJob {
   }
 
   @Bean
+  public Step step2(
+      JobRepository jobRepository,
+      JdbcTransactionManager transactionManager,
+      FlatFileItemReader<Person> personReader,
+      PersonWriter personWriter) {
+    return new StepBuilder("step2", jobRepository)
+        .<Person, Person>chunk(1, transactionManager)
+        .reader(personReader)
+        .writer(personWriter)
+        .build();
+  }
+
+  @Bean
   public FlatFileItemReader<Trade> tradeReader(DefaultLineMapper<Trade> tradeLineMapper) {
     FlatFileItemReader<Trade> reader = new FlatFileItemReader<>();
     reader.setResource(
         new ClassPathResource("com/github/khshourov/batchpractices/beanwrapper/data/trade.txt"));
     reader.setLineMapper(tradeLineMapper);
+    return reader;
+  }
+
+  @Bean
+  public FlatFileItemReader<Person> personReader(DefaultLineMapper<Person> personalLineWrapper) {
+    FlatFileItemReader<Person> reader = new FlatFileItemReader<>();
+    reader.setResource(
+        new ClassPathResource("com/github/khshourov/batchpractices/beanwrapper/data/person.txt"));
+    reader.setLineMapper(personalLineWrapper);
     return reader;
   }
 
@@ -72,11 +96,41 @@ public class BeanWrapperMapperJob {
   }
 
   @Bean
+  public DefaultLineMapper<Person> personLineMapper(
+      FixedLengthTokenizer personalTokenizer, FieldSetMapper<Person> personFieldSetMapper) {
+    DefaultLineMapper<Person> mapper = new DefaultLineMapper<>();
+    mapper.setLineTokenizer(personalTokenizer);
+    mapper.setFieldSetMapper(personFieldSetMapper);
+    return mapper;
+  }
+
+  @Bean
   FixedLengthTokenizer tradeTokenizer() {
     FixedLengthTokenizer tokenizer = new FixedLengthTokenizer();
     tokenizer.setNames("ISIN", "Quantity", "price", "CUSTOMER");
+    tokenizer.setColumns(new Range(1, 12), new Range(13, 15), new Range(16, 20), new Range(21, 29));
+    return tokenizer;
+  }
+
+  @Bean
+  FixedLengthTokenizer personalTokenizer() {
+    FixedLengthTokenizer tokenizer = new FixedLengthTokenizer();
+    tokenizer.setNames(
+        "Title",
+        "FirstName",
+        "LastName",
+        "Age",
+        "Address.AddrLine1",
+        "children[0].name",
+        "children[1].name");
     tokenizer.setColumns(
-        new Range[] {new Range(1, 12), new Range(13, 15), new Range(16, 20), new Range(21, 29)});
+        new Range(1, 5),
+        new Range(6, 20),
+        new Range(21, 40),
+        new Range(41, 45),
+        new Range(46, 55),
+        new Range(56, 65),
+        new Range(66, 75));
     return tokenizer;
   }
 
@@ -84,6 +138,13 @@ public class BeanWrapperMapperJob {
   public FieldSetMapper<Trade> tradeFieldSetMapper() {
     BeanWrapperFieldSetMapper<Trade> fieldSetMapper = new BeanWrapperFieldSetMapper<>();
     fieldSetMapper.setTargetType(Trade.class);
+    return fieldSetMapper;
+  }
+
+  @Bean
+  FieldSetMapper<Person> personFieldSetMapper() {
+    BeanWrapperFieldSetMapper<Person> fieldSetMapper = new BeanWrapperFieldSetMapper<>();
+    fieldSetMapper.setTargetType(Person.class);
     return fieldSetMapper;
   }
 
@@ -120,5 +181,10 @@ public class BeanWrapperMapperJob {
     incrementer.setDataSource(dataSource);
     incrementer.setIncrementerName("TRADE_SEQ");
     return incrementer;
+  }
+
+  @Bean
+  public PersonWriter personWriter() {
+    return new PersonWriter();
   }
 }
