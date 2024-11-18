@@ -6,8 +6,8 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.support.JdbcTransactionManager;
+import org.springframework.jdbc.support.incrementer.PostgresSequenceMaxValueIncrementer;
 
 @Configuration
 public class DataSourceConfiguration {
@@ -24,9 +24,9 @@ public class DataSourceConfiguration {
   @Value("${spring.datasource.driver-class-name}")
   private String driverClassName;
 
-  @Bean(name = "dataSource")
+  @Bean
   @Profile("dev")
-  public DataSource devDataSource() {
+  public DataSource dataSource() {
     return DataSourceBuilder.create()
         .driverClassName(driverClassName)
         .url(url)
@@ -35,18 +35,16 @@ public class DataSourceConfiguration {
         .build();
   }
 
-  @Bean(name = "dataSource")
-  public DataSource testDataSource() {
-    return new EmbeddedDatabaseBuilder()
-        .addScript("/org/springframework/batch/core/schema-drop-hsqldb.sql")
-        .addScript("/org/springframework/batch/core/schema-hsqldb.sql")
-        .addScript("/com/github/khshourov/batchpractices/common/business-schema-hsqldb.sql")
-        .generateUniqueName(true)
-        .build();
-  }
-
   @Bean
   public JdbcTransactionManager transactionManager(DataSource dataSource) {
     return new JdbcTransactionManager(dataSource);
+  }
+
+  @Bean
+  public PostgresSequenceMaxValueIncrementer tradeIncrementer(DataSource dataSource) {
+    PostgresSequenceMaxValueIncrementer incrementer = new PostgresSequenceMaxValueIncrementer();
+    incrementer.setDataSource(dataSource);
+    incrementer.setIncrementerName("TRADE_SEQ");
+    return incrementer;
   }
 }
