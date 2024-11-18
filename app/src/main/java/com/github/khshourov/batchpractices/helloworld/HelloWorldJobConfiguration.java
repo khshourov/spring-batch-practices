@@ -1,6 +1,7 @@
 package com.github.khshourov.batchpractices.helloworld;
 
 import com.github.khshourov.batchpractices.common.DataSourceConfiguration;
+import com.github.khshourov.batchpractices.common.EmbeddedDataSourceConfiguration;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -15,7 +16,7 @@ import org.springframework.jdbc.support.JdbcTransactionManager;
 
 @Configuration
 @EnableBatchProcessing
-@Import(DataSourceConfiguration.class)
+@Import({DataSourceConfiguration.class, EmbeddedDataSourceConfiguration.class})
 public class HelloWorldJobConfiguration {
 
   @Bean
