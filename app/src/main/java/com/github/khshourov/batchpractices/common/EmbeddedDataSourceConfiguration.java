@@ -37,4 +37,13 @@ public class EmbeddedDataSourceConfiguration {
     incrementer.setIncrementerName("TRADE_SEQ");
     return incrementer;
   }
+
+  @Bean
+  public HsqlMaxValueIncrementer customerIncrementer(DataSource dataSource) {
+    HsqlMaxValueIncrementer incrementer = new HsqlMaxValueIncrementer();
+    incrementer.setDataSource(dataSource);
+    incrementer.setColumnName("ID");
+    incrementer.setIncrementerName("CUSTOMER_SEQ");
+    return incrementer;
+  }
 }

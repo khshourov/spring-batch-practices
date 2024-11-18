@@ -47,4 +47,12 @@ public class DataSourceConfiguration {
     incrementer.setIncrementerName("TRADE_SEQ");
     return incrementer;
   }
+
+  @Bean
+  public PostgresSequenceMaxValueIncrementer customerIncrementer(DataSource dataSource) {
+    PostgresSequenceMaxValueIncrementer incrementer = new PostgresSequenceMaxValueIncrementer();
+    incrementer.setDataSource(dataSource);
+    incrementer.setIncrementerName("CUSTOMER_SEQ");
+    return incrementer;
+  }
 }
