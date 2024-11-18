@@ -1,6 +1,6 @@
 package com.github.khshourov.batchpractices;
 
-import com.github.khshourov.batchpractices.compositewriter.CompositeWriterJob;
+import com.github.khshourov.batchpractices.beanwrapper.BeanWrapperMapperJob;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -20,7 +20,7 @@ public class BatchProcessingApplication {
           JobExecutionAlreadyRunningException,
           JobParametersInvalidException,
           JobRestartException {
-    ApplicationContext context = SpringApplication.run(CompositeWriterJob.class, args);
+    ApplicationContext context = SpringApplication.run(BeanWrapperMapperJob.class, args);
     Job job = context.getBean(Job.class);
     JobLauncher jobLauncher = context.getBean(JobLauncher.class);
     JobParameters parameters = new JobParametersBuilder().toJobParameters();

@@ -1,6 +1,7 @@
 package com.github.khshourov.batchpractices.beanwrapper;
 
 import com.github.khshourov.batchpractices.common.DataSourceConfiguration;
+import com.github.khshourov.batchpractices.common.EmbeddedDataSourceConfiguration;
 import com.github.khshourov.batchpractices.domain.person.Person;
 import com.github.khshourov.batchpractices.domain.person.internal.PersonWriter;
 import com.github.khshourov.batchpractices.domain.trade.Trade;
@@ -29,11 +30,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.support.JdbcTransactionManager;
 import org.springframework.jdbc.support.incrementer.DataFieldMaxValueIncrementer;
-import org.springframework.jdbc.support.incrementer.PostgresSequenceMaxValueIncrementer;
 
 @Configuration
 @EnableBatchProcessing
-@Import(DataSourceConfiguration.class)
+@Import({DataSourceConfiguration.class, EmbeddedDataSourceConfiguration.class})
 public class BeanWrapperMapperJob {
   @Bean
   public Job job(JobRepository jobRepository, Step step1, Step step2) {
@@ -173,14 +173,6 @@ public class BeanWrapperMapperJob {
     jdbcTradeDao.setDataSource(dataSource);
     jdbcTradeDao.setIncrementer(tradeIncrementer);
     return jdbcTradeDao;
-  }
-
-  @Bean
-  public PostgresSequenceMaxValueIncrementer tradeIncrementer(DataSource dataSource) {
-    PostgresSequenceMaxValueIncrementer incrementer = new PostgresSequenceMaxValueIncrementer();
-    incrementer.setDataSource(dataSource);
-    incrementer.setIncrementerName("TRADE_SEQ");
-    return incrementer;
   }
 
   @Bean
