@@ -1,6 +1,7 @@
 package com.github.khshourov.batchpractices.jpa;
 
 import com.github.khshourov.batchpractices.common.DataSourceConfiguration;
+import com.github.khshourov.batchpractices.common.EmbeddedDataSourceConfiguration;
 import com.github.khshourov.batchpractices.domain.trade.CustomerCredit;
 import com.github.khshourov.batchpractices.domain.trade.internal.CustomerCreditIncreaseProcessor;
 import jakarta.persistence.EntityManagerFactory;
@@ -31,7 +32,7 @@ import org.springframework.orm.jpa.persistenceunit.PersistenceUnitManager;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
 @Configuration
-@Import(DataSourceConfiguration.class)
+@Import({DataSourceConfiguration.class, EmbeddedDataSourceConfiguration.class})
 @EnableBatchProcessing(
     isolationLevelForCreate = "ISOLATION_DEFAULT",
     transactionManagerRef = "jpaTransactionManager")

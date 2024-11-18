@@ -1,6 +1,7 @@
 package com.github.khshourov.batchpractices.jdbc;
 
 import com.github.khshourov.batchpractices.common.DataSourceConfiguration;
+import com.github.khshourov.batchpractices.common.EmbeddedDataSourceConfiguration;
 import com.github.khshourov.batchpractices.domain.trade.CustomerCredit;
 import com.github.khshourov.batchpractices.domain.trade.internal.CustomerCreditIncreaseProcessor;
 import javax.sql.DataSource;
@@ -22,7 +23,7 @@ import org.springframework.jdbc.support.JdbcTransactionManager;
 
 @Configuration
 @EnableBatchProcessing
-@Import(DataSourceConfiguration.class)
+@Import({DataSourceConfiguration.class, EmbeddedDataSourceConfiguration.class})
 public class JdbcReaderBatchWriterJob {
 
   @Bean

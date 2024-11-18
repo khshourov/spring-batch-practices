@@ -1,6 +1,5 @@
 package com.github.khshourov.batchpractices;
 
-import com.github.khshourov.batchpractices.beanwrapper.BeanWrapperMapperJob;
 import com.github.khshourov.batchpractices.helloworld.HelloWorldJobConfiguration;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
