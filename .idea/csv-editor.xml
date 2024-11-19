@@ -3,6 +3,13 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
+        <entry key="/app/build/test-output/delimited.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/app/src/main/resources/com/github/khshourov/batchpractices/compositereader/data/person1.csv">
           <value>
             <Attribute>
@@ -11,6 +18,13 @@
           </value>
         </entry>
         <entry key="/app/src/main/resources/com/github/khshourov/batchpractices/compositereader/data/person2.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/app/src/main/resources/com/github/khshourov/batchpractices/delimited/data/customers.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
