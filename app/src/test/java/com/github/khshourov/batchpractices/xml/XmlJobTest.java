@@ -3,6 +3,7 @@ package com.github.khshourov.batchpractices.xml;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.File;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;
@@ -15,8 +16,6 @@ import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteExcep
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-
-import java.io.File;
 
 public class XmlJobTest {
   @Test
@@ -42,7 +41,6 @@ public class XmlJobTest {
 
     File outputFile = new File("build/test-output/xml.xml");
     assertTrue(outputFile.exists());
-    assertTrue(
-            outputFile.delete(), "Please manually delete file:build/test-output/xml.xml");
+    assertTrue(outputFile.delete(), "Please manually delete file:build/test-output/xml.xml");
   }
 }

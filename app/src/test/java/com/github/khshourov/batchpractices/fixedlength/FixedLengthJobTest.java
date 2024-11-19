@@ -3,7 +3,6 @@ package com.github.khshourov.batchpractices.fixedlength;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.github.khshourov.batchpractices.delimited.DelimitedFileJob;
 import java.io.File;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.BatchStatus;
