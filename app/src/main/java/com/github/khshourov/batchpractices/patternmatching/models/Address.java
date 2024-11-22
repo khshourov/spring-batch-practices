@@ -1,4 +1,4 @@
-package com.github.khshourov.batchpractices.file.patternmatching;
+package com.github.khshourov.batchpractices.patternmatching.models;
 
 public class Address {
 

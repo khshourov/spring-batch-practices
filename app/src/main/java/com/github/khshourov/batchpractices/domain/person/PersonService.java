@@ -1,6 +1,6 @@
 package com.github.khshourov.batchpractices.domain.person;
 
-import com.github.khshourov.batchpractices.file.patternmatching.Address;
+import com.github.khshourov.batchpractices.patternmatching.models.Address;
 import java.util.ArrayList;
 import java.util.List;
 
