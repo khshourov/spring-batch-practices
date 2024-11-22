@@ -7,15 +7,19 @@ import com.github.khshourov.batchpractices.patternmatching.models.LineItem;
 import com.github.khshourov.batchpractices.patternmatching.models.Order;
 import com.github.khshourov.batchpractices.patternmatching.models.ShippingInfo;
 import java.util.ArrayList;
+import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.ItemStream;
+import org.springframework.batch.item.ItemStreamException;
 import org.springframework.batch.item.NonTransientResourceException;
 import org.springframework.batch.item.ParseException;
 import org.springframework.batch.item.UnexpectedInputException;
+import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.mapping.FieldSetMapper;
 import org.springframework.batch.item.file.transform.FieldSet;
 
-public class OrderItemReader implements ItemReader<Order> {
-  private ItemReader<FieldSet> delegate;
+public class OrderItemReader implements ItemReader<Order>, ItemStream {
+  private FlatFileItemReader<FieldSet> delegate;
 
   private FieldSetMapper<Order> orderFieldSetMapper;
   private FieldSetMapper<Customer> customerFieldSetMapper;
@@ -87,7 +91,22 @@ public class OrderItemReader implements ItemReader<Order> {
     }
   }
 
-  public void setDelegate(ItemReader<FieldSet> delegate) {
+  @Override
+  public void open(ExecutionContext executionContext) throws ItemStreamException {
+    this.delegate.open(executionContext);
+  }
+
+  @Override
+  public void update(ExecutionContext executionContext) throws ItemStreamException {
+    this.delegate.update(executionContext);
+  }
+
+  @Override
+  public void close() throws ItemStreamException {
+    this.delegate.close();
+  }
+
+  public void setDelegate(FlatFileItemReader<FieldSet> delegate) {
     this.delegate = delegate;
   }
 

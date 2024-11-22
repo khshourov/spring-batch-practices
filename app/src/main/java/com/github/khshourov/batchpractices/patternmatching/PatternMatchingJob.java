@@ -10,7 +10,6 @@ import com.github.khshourov.batchpractices.patternmatching.fieldsetmappers.Order
 import com.github.khshourov.batchpractices.patternmatching.fieldsetmappers.ShippingInfoFieldSetMapper;
 import com.github.khshourov.batchpractices.patternmatching.models.Order;
 import com.github.khshourov.batchpractices.patternmatching.validators.OrderValidator;
-import org.aspectj.weaver.ast.Or;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
