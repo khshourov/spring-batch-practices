@@ -40,6 +40,7 @@ public class OrderItemReader implements ItemReader<Order>, ItemStream {
       }
       if (Order.LINE_ID_HEADER.equals(line.readString(0))) {
         order = orderFieldSetMapper.mapFieldSet(line);
+        continue;
       }
 
       assert order != null;
