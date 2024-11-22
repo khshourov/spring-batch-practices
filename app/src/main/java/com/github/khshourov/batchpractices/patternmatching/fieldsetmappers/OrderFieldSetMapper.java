@@ -5,7 +5,7 @@ import org.springframework.batch.item.file.mapping.FieldSetMapper;
 import org.springframework.batch.item.file.transform.FieldSet;
 import org.springframework.validation.BindException;
 
-public class OrderFieldSetItem implements FieldSetMapper<Order> {
+public class OrderFieldSetMapper implements FieldSetMapper<Order> {
   public static final String ORDER_ID_COLUMN = "ORDER_ID";
   public static final String ORDER_DATE_COLUMN = "ORDER_DATE";
 
