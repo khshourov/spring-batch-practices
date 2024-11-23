@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertLinesMatch;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;

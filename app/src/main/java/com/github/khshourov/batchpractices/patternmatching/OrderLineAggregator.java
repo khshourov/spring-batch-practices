@@ -3,7 +3,6 @@ package com.github.khshourov.batchpractices.patternmatching;
 import com.github.khshourov.batchpractices.patternmatching.models.LineItem;
 import com.github.khshourov.batchpractices.patternmatching.models.Order;
 import java.util.Map;
-
 import org.springframework.batch.item.file.transform.FormatterLineAggregator;
 import org.springframework.batch.item.file.transform.LineAggregator;
 
