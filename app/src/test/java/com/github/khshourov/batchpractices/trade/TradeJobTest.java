@@ -6,12 +6,17 @@ import com.github.khshourov.batchpractices.lib.SqlFileExecutor;
 import java.io.IOException;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.Test;
+import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
+import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInterruptedException;
+import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRepository;
@@ -59,13 +64,8 @@ public class TradeJobTest {
           IOException {
     ApplicationContext applicationContext = new AnnotationConfigApplicationContext(TradeJob.class);
     JobRepository jobRepository = applicationContext.getBean(JobRepository.class);
-    JobExecution jobExecution =
-        jobRepository.createJobExecution(
-            "testJob",
-            new JobParametersBuilder()
-                .addString(
-                    "tradeInputFile", "com/github/khshourov/batchpractices/trade/data/trades.txt")
-                .toJobParameters());
+    JobExecution jobExecution = jobRepository.createJobExecution("testJob", new JobParameters());
+
     StepExecution stepExecution = jobExecution.createStepExecution("tradeLoadFromDb");
     jobRepository.add(stepExecution);
     Step step = applicationContext.getBean("tradeLoadFromDb", Step.class);
@@ -92,5 +92,28 @@ public class TradeJobTest {
         1,
         JdbcTestUtils.countRowsInTableWhere(
             jdbcTemplate, "CUSTOMER", "name = 'customer4' AND credit = 960"));
+  }
+
+  @Test
+  void testLaunchJob()
+      throws JobInstanceAlreadyCompleteException,
+          JobExecutionAlreadyRunningException,
+          JobParametersInvalidException,
+          JobRestartException {
+    ApplicationContext applicationContext = new AnnotationConfigApplicationContext(TradeJob.class);
+    JobLauncher jobLauncher = applicationContext.getBean(JobLauncher.class);
+    Job job = applicationContext.getBean(Job.class);
+
+    JobExecution jobExecution =
+        jobLauncher.run(
+            job,
+            new JobParametersBuilder()
+                .addString(
+                    "tradeInputFile", "com/github/khshourov/batchpractices/trade/data/trades.txt")
+                .addString(
+                    "customerCreditOutputFile", "file:build/test-output/customer-credit-output.txt")
+                .toJobParameters());
+
+    assertEquals(BatchStatus.COMPLETED, jobExecution.getStatus());
   }
 }
