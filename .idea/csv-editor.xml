@@ -31,6 +31,20 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/app/src/main/resources/com/github/khshourov/batchpractices/football/data/games-small.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/app/src/main/resources/com/github/khshourov/batchpractices/football/data/games.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/app/src/main/resources/com/github/khshourov/batchpractices/football/data/player-small-v1.csv">
           <value>
             <Attribute>

@@ -2,6 +2,9 @@ package com.github.khshourov.batchpractices.football;
 
 import com.github.khshourov.batchpractices.common.DataSourceConfiguration;
 import com.github.khshourov.batchpractices.common.EmbeddedDataSourceConfiguration;
+import com.github.khshourov.batchpractices.football.game.Game;
+import com.github.khshourov.batchpractices.football.game.GameFieldSetMapper;
+import com.github.khshourov.batchpractices.football.game.GameItemWriter;
 import com.github.khshourov.batchpractices.football.player.JdbcPlayerDao;
 import com.github.khshourov.batchpractices.football.player.Player;
 import com.github.khshourov.batchpractices.football.player.PlayerFieldSetMapper;
@@ -29,18 +32,18 @@ public class FootballJob {
   public Step playerLoad(
       JobRepository jobRepository,
       JdbcTransactionManager transactionManager,
-      FlatFileItemReader<Player> itemReader,
-      PlayerItemWriter itemWriter) {
+      FlatFileItemReader<Player> playerItemReader,
+      PlayerItemWriter playerItemWriter) {
     return new StepBuilder("playerLoad", jobRepository)
         .<Player, Player>chunk(1, transactionManager)
-        .reader(itemReader)
-        .writer(itemWriter)
+        .reader(playerItemReader)
+        .writer(playerItemWriter)
         .build();
   }
 
   @Bean
   @StepScope
-  public FlatFileItemReader<Player> itemReader(
+  public FlatFileItemReader<Player> playerItemReader(
       @Value("#{jobParameters['playerInputFile']}") Resource resource) {
     return new FlatFileItemReaderBuilder<Player>()
         .name("playerItemReader")
@@ -52,12 +55,60 @@ public class FootballJob {
   }
 
   @Bean
-  public PlayerItemWriter itemWriter(DataSource dataSource) {
+  public PlayerItemWriter playerItemWriter(DataSource dataSource) {
     JdbcPlayerDao playerDao = new JdbcPlayerDao();
     playerDao.setDataSource(dataSource);
 
     PlayerItemWriter itemWriter = new PlayerItemWriter();
     itemWriter.setPlayerDao(playerDao);
+    return itemWriter;
+  }
+
+  @Bean
+  public Step gameLoad(
+      JobRepository jobRepository,
+      JdbcTransactionManager transactionManager,
+      FlatFileItemReader<Game> gameItemReader,
+      GameItemWriter gameItemWriter) {
+    return new StepBuilder("gameLoad", jobRepository)
+        .<Game, Game>chunk(1, transactionManager)
+        .reader(gameItemReader)
+        .writer(gameItemWriter)
+        .build();
+  }
+
+  @Bean
+  @StepScope
+  public FlatFileItemReader<Game> gameItemReader(
+      @Value("#{jobParameters['gameInputFile']}") Resource resource) {
+    return new FlatFileItemReaderBuilder<Game>()
+        .name("gameItemReader")
+        .resource(resource)
+        .delimited()
+        .names(
+            "id",
+            "year",
+            "team",
+            "week",
+            "opponent",
+            "completes",
+            "attempts",
+            "passingYards",
+            "passingTd",
+            "interceptions",
+            "rushes",
+            "rushYards",
+            "receptions",
+            "receptionYards",
+            "totalTd")
+        .fieldSetMapper(new GameFieldSetMapper())
+        .build();
+  }
+
+  @Bean
+  public GameItemWriter gameItemWriter(DataSource dataSource) {
+    GameItemWriter itemWriter = new GameItemWriter();
+    itemWriter.setDataSource(dataSource);
     return itemWriter;
   }
 }

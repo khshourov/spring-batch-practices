@@ -50,4 +50,34 @@ public class FootballJobTest {
     int actualPlayersCount = JdbcTestUtils.countRowsInTable(jdbcTemplate, "PLAYERS");
     assertEquals(20, actualPlayersCount);
   }
+
+  @Test
+  void testGameLoadStep()
+      throws JobInterruptedException,
+          JobInstanceAlreadyCompleteException,
+          JobExecutionAlreadyRunningException,
+          JobRestartException {
+    ApplicationContext applicationContext =
+        new AnnotationConfigApplicationContext(FootballJob.class);
+    JobRepository jobRepository = applicationContext.getBean(JobRepository.class);
+    JobExecution jobExecution =
+        jobRepository.createJobExecution(
+            "testJob",
+            new JobParametersBuilder()
+                .addString(
+                    "gameInputFile",
+                    "com/github/khshourov/batchpractices/football/data/games-small.csv")
+                .toJobParameters());
+    StepExecution stepExecution = jobExecution.createStepExecution("gameLoad");
+    jobRepository.add(stepExecution);
+    JdbcTemplate jdbcTemplate = new JdbcTemplate(applicationContext.getBean(DataSource.class));
+
+    Step step = applicationContext.getBean("gameLoad", Step.class);
+
+    step.execute(stepExecution);
+
+    assertEquals(ExitStatus.COMPLETED, stepExecution.getExitStatus());
+    int actualGamesCount = JdbcTestUtils.countRowsInTable(jdbcTemplate, "GAMES");
+    assertEquals(5, actualGamesCount);
+  }
 }
