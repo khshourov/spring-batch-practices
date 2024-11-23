@@ -3,7 +3,10 @@ package com.github.khshourov.batchpractices.trade;
 import com.github.khshourov.batchpractices.common.DataSourceConfiguration;
 import com.github.khshourov.batchpractices.common.EmbeddedDataSourceConfiguration;
 import com.github.khshourov.batchpractices.domain.trade.Trade;
+import com.github.khshourov.batchpractices.domain.trade.internal.CustomerDebitUpdateWriter;
+import com.github.khshourov.batchpractices.domain.trade.internal.JdbcCustomerDebitDao;
 import com.github.khshourov.batchpractices.domain.trade.internal.JdbcTradeDao;
+import com.github.khshourov.batchpractices.domain.trade.internal.TradeRowMapper;
 import com.github.khshourov.batchpractices.domain.trade.internal.TradeWriter;
 import com.github.khshourov.batchpractices.domain.trade.internal.validator.TradeValidator;
 import javax.sql.DataSource;
@@ -12,6 +15,8 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.item.database.JdbcCursorItemReader;
+import org.springframework.batch.item.database.builder.JdbcCursorItemReaderBuilder;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
@@ -109,5 +114,40 @@ public class TradeJob {
     TradeWriter tradeWriter = new TradeWriter();
     tradeWriter.setTradeDao(tradeDao);
     return tradeWriter;
+  }
+
+  @Bean
+  public Step tradeLoadFromDb(
+      JobRepository jobRepository,
+      JdbcTransactionManager transactionManager,
+      JdbcCursorItemReader<Trade> tradeJdbcCursorItemReader,
+      CustomerDebitUpdateWriter customerUpdateWriter) {
+    return new StepBuilder("tradeLoadFromDb", jobRepository)
+        .<Trade, Trade>chunk(1, transactionManager)
+        .reader(tradeJdbcCursorItemReader)
+        .writer(customerUpdateWriter)
+        .build();
+  }
+
+  @Bean
+  public JdbcCursorItemReader<Trade> tradeJdbcCursorItemReader(DataSource dataSource) {
+    String sql = "SELECT isin, quantity, price, customer, id, version from TRADE";
+
+    return new JdbcCursorItemReaderBuilder<Trade>()
+        .name("tradeJdbcCursorItemReader")
+        .dataSource(dataSource)
+        .sql(sql)
+        .rowMapper(new TradeRowMapper())
+        .build();
+  }
+
+  @Bean
+  public CustomerDebitUpdateWriter customerUpdateWriter(DataSource dataSource) {
+    JdbcCustomerDebitDao customerDebitDao = new JdbcCustomerDebitDao();
+    customerDebitDao.setDataSource(dataSource);
+
+    CustomerDebitUpdateWriter writer = new CustomerDebitUpdateWriter();
+    writer.setCustomerDebitDao(customerDebitDao);
+    return writer;
   }
 }
