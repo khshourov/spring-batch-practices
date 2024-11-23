@@ -9,12 +9,19 @@ import com.github.khshourov.batchpractices.football.player.JdbcPlayerDao;
 import com.github.khshourov.batchpractices.football.player.Player;
 import com.github.khshourov.batchpractices.football.player.PlayerFieldSetMapper;
 import com.github.khshourov.batchpractices.football.player.PlayerItemWriter;
+import com.github.khshourov.batchpractices.football.playersummary.PlayerSummary;
+import com.github.khshourov.batchpractices.football.playersummary.PlayerSummaryItemWriter;
+import com.github.khshourov.batchpractices.football.playersummary.PlayerSummaryRowMapper;
 import javax.sql.DataSource;
+import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.item.database.JdbcCursorItemReader;
+import org.springframework.batch.item.database.builder.JdbcCursorItemReaderBuilder;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Value;
@@ -110,5 +117,56 @@ public class FootballJob {
     GameItemWriter itemWriter = new GameItemWriter();
     itemWriter.setDataSource(dataSource);
     return itemWriter;
+  }
+
+  @Bean
+  public Step playerSummaryLoad(
+      JobRepository jobRepository,
+      JdbcTransactionManager transactionManager,
+      JdbcCursorItemReader<PlayerSummary> playerSummaryItemReader,
+      PlayerSummaryItemWriter playerSummaryItemWriter) {
+    return new StepBuilder("playerSummaryLoad", jobRepository)
+        .<PlayerSummary, PlayerSummary>chunk(1, transactionManager)
+        .reader(playerSummaryItemReader)
+        .writer(playerSummaryItemWriter)
+        .build();
+  }
+
+  @Bean
+  public JdbcCursorItemReader<PlayerSummary> playerSummaryItemReader(DataSource dataSource) {
+    String sql =
+        """
+SELECT GAMES.player_id, GAMES.year_no, SUM(COMPLETES),
+SUM(ATTEMPTS), SUM(PASSING_YARDS), SUM(PASSING_TD),
+SUM(INTERCEPTIONS), SUM(RUSHES), SUM(RUSH_YARDS),
+SUM(RECEPTIONS), SUM(RECEPTIONS_YARDS), SUM(TOTAL_TD)
+from GAMES, PLAYERS where PLAYERS.player_id =
+GAMES.player_id group by GAMES.player_id, GAMES.year_no
+				""";
+
+    return new JdbcCursorItemReaderBuilder<PlayerSummary>()
+        .name("playerSummaryItemReader")
+        .ignoreWarnings(true)
+        .sql(sql)
+        .dataSource(dataSource)
+        .rowMapper(new PlayerSummaryRowMapper())
+        .build();
+  }
+
+  @Bean
+  public PlayerSummaryItemWriter playerSummaryItemWriter(DataSource dataSource) {
+    PlayerSummaryItemWriter playerSummaryItemWriter = new PlayerSummaryItemWriter();
+    playerSummaryItemWriter.setDataSource(dataSource);
+    return playerSummaryItemWriter;
+  }
+
+  @Bean
+  public Job job(
+      JobRepository jobRepository, Step playerLoad, Step gameLoad, Step playerSummaryLoad) {
+    return new JobBuilder("footballJob", jobRepository)
+        .start(playerLoad)
+        .next(gameLoad)
+        .next(playerSummaryLoad)
+        .build();
   }
 }
