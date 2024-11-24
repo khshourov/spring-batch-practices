@@ -25,4 +25,8 @@ public class GeneratingTradeItemReader implements ItemReader<Trade> {
   public void setLimit(int limit) {
     this.limit = limit;
   }
+
+  public void resetCounter() {
+    this.counter = 0;
+  }
 }
