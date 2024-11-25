@@ -46,4 +46,13 @@ public class EmbeddedDataSourceConfiguration {
     incrementer.setIncrementerName("CUSTOMER_SEQ");
     return incrementer;
   }
+
+  @Bean
+  public HsqlMaxValueIncrementer batchStagingIncrementer(DataSource dataSource) {
+    HsqlMaxValueIncrementer incrementer = new HsqlMaxValueIncrementer();
+    incrementer.setDataSource(dataSource);
+    incrementer.setColumnName("ID");
+    incrementer.setIncrementerName("BATCH_STAGING_SEQ");
+    return incrementer;
+  }
 }
