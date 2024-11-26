@@ -109,7 +109,7 @@ public class FilePartitionJob {
   @Bean
   @StepScope
   public FlatFileItemWriter<CustomerCredit> itemWriter(
-      @Value("#{stepExecutionContext[outputFile]}")WritableResource resource) {
+      @Value("#{stepExecutionContext[outputFile]}") WritableResource resource) {
     BeanWrapperFieldExtractor<CustomerCredit> extractor = new BeanWrapperFieldExtractor<>();
     extractor.setNames(new String[] {"name", "credit"});
 
